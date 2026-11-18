@@ -624,7 +624,20 @@ func wstgFor(vulnClass string) (id, name string) {
 		return "WSTG-SESS-02", "Testing for Cookies Attributes"
 	case containsAny(v, "information disclosure", "sensitive data", "pii", "enumeration", "exposure"):
 		return "WSTG-INFO-05", "Review Webpage Content for Information Leakage"
-	case containsAny(v, "header", "misconfiguration", "cors", "hsts"):
+	case containsAny(v, "dmarc", "spf", "dkim", "email spoof", "email auth"):
+		return "WSTG-CONF-13", "Test Sensitive Information in Emails"
+	case containsAny(v, "tls", "ssl", "cipher", "cbc", "weak crypto", "deprecated protocol"):
+		return "WSTG-CRYP-01", "Testing for Weak Transport Layer Security"
+	case containsAny(v, "caa", "dnssec"):
+		// WSTG has no dedicated CAA/DNSSEC test; CONF-09 (infrastructure) is the
+		// closest. Deliberately NOT CONF-11 (that is cloud storage).
+		return "WSTG-CONF-09", "Test Infrastructure and Application Admin Interfaces"
+	case containsAny(v, "csp", "content security policy", "content_security_policy"):
+		return "WSTG-CONF-14", "Test Content Security Policy"
+	case containsAny(v, "coep", "corp", "cross-origin", "cross_origin"):
+		return "WSTG-CONF-07", "Test HTTP Strict Transport Security"
+	case containsAny(v, "header", "misconfiguration", "cors", "hsts", "x-frame", "xfo",
+		"missing_security_headers", "security_headers"):
 		return "WSTG-CONF-07", "Test HTTP Strict Transport Security"
 	case containsAny(v, "authentication", "login", "otp", "credential"):
 		return "WSTG-ATHN-01", "Testing for Credentials Transported over an Encrypted Channel"
@@ -666,6 +679,17 @@ func mitreFor(vulnClass string) (id, name string) {
 		return "T1110", "Brute Force"
 	case containsAny(v, "cookie", "httponly", "samesite", "session fixation", "session hijack", "takeover"):
 		return "T1185", "Browser Session Hijacking"
+	case containsAny(v, "dmarc", "spf", "dkim", "email spoof", "email auth"):
+		// Missing email authentication (DMARC/SPF/DKIM) enables domain spoofing /
+		// phishing of the organisation's identity, not infrastructure acquisition.
+		return "T1566", "Phishing"
+	case containsAny(v, "caa", "dnssec"):
+		return "T1583.001", "Acquire Infrastructure: Domains"
+	case containsAny(v, "tls", "ssl", "cipher", "cbc", "weak crypto", "deprecated protocol"):
+		return "T1600.001", "Weaken Encryption: Reduce Key Space"
+	case containsAny(v, "csp", "content security policy", "content_security_policy", "x-frame", "xfo", "coep", "corp",
+		"cross-origin", "cross_origin", "hsts", "missing security header", "security header", "security_header"):
+		return "T1189", "Drive-by Compromise"
 	case containsAny(v, "header", "misconfiguration", "cors", "tls"):
 		return "T1190", "Exploit Public-Facing Application"
 	case containsAny(v, "enumeration", "recon", "discovery", "fingerprint"):
