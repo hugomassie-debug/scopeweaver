@@ -106,6 +106,10 @@ func run() (code int) {
 			code = 1
 		}
 	}()
+	// Engagement logging: wire the terminal-status hook so every task produces the
+	// five logs + attack mapping + report without any caller remembering. Env var
+	// overrides the default output root under the data dir.
+	mgr.EnableEngagementAutomation(os.Getenv("ARTEX_ENGAGEMENT_REPORTS"))
 
 	// Surviving this long means a freshly swapped-in build actually works, so drop
 	// the upgrade marker and stop counting attempts. Until it fires, every boot
