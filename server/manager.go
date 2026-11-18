@@ -252,6 +252,12 @@ type Manager struct {
 	// capture is on it becomes the MITM's upstream; when capture is off it is
 	// injected into agent bash env / WebFetch directly. See ProxyAddr.
 	globalProxy string
+
+	// engagementHook runs once when a task reaches a terminal status. It is how
+	// the engagement logging pipeline (five logs + attack mapping + report) gets
+	// invoked on every run without any caller remembering. Wired in
+	// EnableEngagementAutomation at boot.
+	engagementHook func(taskID int64, status string)
 }
 
 // Settings keys the UI toggles at runtime.
@@ -1489,6 +1495,16 @@ func (m *Manager) SetTaskStatus(id, status string) error {
 		})
 	}
 	m.mu.Unlock()
+	// Engagement logging runs once per task reaching a terminal status, off the
+	// lock so a slow render never blocks status mutation. The hook is nil until
+	// EnableEngagementAutomation wires it at boot; a panic here must never fail
+	// the status write, so it is guarded.
+	if isTerminalStatus(status) && m.engagementHook != nil {
+		func() {
+			defer func() { _ = recover() }()
+			m.engagementHook(n, status)
+		}()
+	}
 	return nil
 }
 
