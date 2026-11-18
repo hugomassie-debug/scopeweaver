@@ -1,0 +1,12 @@
+# Bukti temuan #3529 — Missing DMARC/CAA records (gurufintek.com)
+# Dikumpulkan: 2026-11-18T06:36:52Z
+# Perintah: dig TXT gurufintek.com + dig CAA gurufintek.com
+
+## TXT records (cari v=DMARC1 / v=spf1):
+"v=spf1 include:_spf.mx.cloudflare.net ~all"
+
+## _dmarc subdomain (DMARC record):
+(kosong / NXDOMAIN = TIDAK ADA record DMARC)
+
+## CAA record:
+(kosong = TIDAK ADA CAA)

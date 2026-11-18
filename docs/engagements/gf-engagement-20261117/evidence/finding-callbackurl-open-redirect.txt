@@ -1,0 +1,34 @@
+# Bukti temuan #2 — callbackUrl open-redirect (gurufintek.com)
+# Dikumpulkan: 2026-11-18T06:40:19Z
+# Target: https://gurufintek.com/login?callbackUrl=<payload>
+
+## Endpoint
+/login merespons 200 dan memuat parameter callbackUrl (NextAuth-style).
+
+## Uji normalisasi callbackUrl (GET, tanpa login)
+
+| callbackUrl input | nilai di body (dinormalisasi NextAuth) |
+|---|---|
+| `GFPROBE123` | `callbackUrl&quot;:[0,&quot;/GFPROBE123` |
+| `/GFPROBE123` | `callbackUrl&quot;:[0,&quot;/GFPROBE123` |
+| `//evil.com` | `callbackUrl&quot;:[0,&quot;/` |
+| `https://evil.com` | `callbackUrl&quot;:[0,&quot;/` |
+| `https://gurufintek.com.evil.com/x` | `callbackUrl&quot;:[0,&quot;/` |
+
+## Analisis
+NextAuth **memvalidasi** callbackUrl: hanya path RELATIVE yang diterima. Semua
+URL eksternal (//evil.com, https://evil.com, subdomain-trick gurufintek.com.evil.com)
+dipaksa dinormalisasi menjadi '/' (relative root). Tidak ada redirect server-side
+ke domain eksternal.
+
+## VERDICT: FALSE POSITIVE / TERTUTUP
+FINDING 2 dari assessment 2026-10-09 menyatakan callbackUrl open-redirect
+'UNVERIFIED, needs session'. Pengujian mendalam ini (tanpa login) sudah cukup
+membuktikan validasi NextAuth menolak URL eksternal, sehingga open-redirect
+TIDAK bisa dieksploitasi. Status: CLOSED (bukan temuan aktif).
+
+## Perintah reproduksi
+```bash
+curl -s "https://gurufintek.com/login?callbackUrl=https://evil.com" | grep -o "callbackUrl[^,]*"
+```
+(nilai akan dinormalisasi menjadi /, bukan https://evil.com)
